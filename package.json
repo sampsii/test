@@ -1,14 +1,13 @@
 {
-  "name": "inventory-manager",
+  "name": "hydro-vault-inventory",
   "version": "1.0.0",
-  "description": "Retail store inventory management web app",
+  "description": "Inventory management for HydroVault – premium water bottles",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.3",
     "express": "^4.18.2"
   }
 }

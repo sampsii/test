@@ -1,15 +1,15 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f4f6fb;
+  --bg: #f0f7ff;
   --surface: #ffffff;
-  --surface2: #f9fafc;
-  --border: #e4e8f0;
-  --text: #1a202c;
-  --text-muted: #6b7280;
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #eef2ff;
+  --surface2: #f4f9ff;
+  --border: #d6e8f7;
+  --text: #0d2137;
+  --text-muted: #5b7a96;
+  --primary: #0077b6;
+  --primary-hover: #005f8e;
+  --primary-light: #e0f2fe;
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --warning: #f59e0b;
@@ -18,8 +18,8 @@
   --low-stock-text: #92400e;
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,.14);
+  --shadow: 0 1px 3px rgba(0,60,120,.07), 0 4px 12px rgba(0,60,120,.06);
+  --shadow-lg: 0 8px 32px rgba(0,60,120,.14);
   --transition: .18s ease;
 }
 
@@ -53,11 +53,11 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--primary);
 }
-.logo-icon { width: 28px; height: 28px; }
+.logo-icon { width: 30px; height: 30px; color: var(--primary); }
+.logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+.logo-name { font-size: 18px; font-weight: 700; color: var(--primary); }
+.logo-sub  { font-size: 11px; font-weight: 400; color: var(--text-muted); letter-spacing: .04em; }
 
 /* ── Stats Bar ── */
 .stats-bar {

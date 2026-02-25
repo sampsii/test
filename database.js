@@ -1,62 +1,46 @@
-const Database = require('better-sqlite3');
+const fs   = require('fs');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, 'inventory.db');
+const DB_PATH = path.join(__dirname, 'inventory.json');
 
-function initializeDatabase() {
-  const db = new Database(DB_PATH);
+const SEED_PRODUCTS = [
+  { name: 'HydroVault Classic 750ml',          category: 'Stainless Steel Bottles', sku: 'HV-SS-001', price: 44.99,  quantity: 120, description: 'Double-wall vacuum insulated, keeps drinks cold 24 h / hot 12 h. Matte finish.' },
+  { name: 'HydroVault Slim 500ml',             category: 'Stainless Steel Bottles', sku: 'HV-SS-002', price: 38.99,  quantity: 95,  description: 'Slim-profile stainless steel, fits most cup holders. Leak-proof lid.' },
+  { name: 'HydroVault XL 1.2L',               category: 'Stainless Steel Bottles', sku: 'HV-SS-003', price: 59.99,  quantity: 60,  description: 'Extra-large double-wall bottle for all-day hydration. Wide-mouth opening.' },
+  { name: 'HydroVault Sport 650ml',            category: 'Stainless Steel Bottles', sku: 'HV-SS-004', price: 49.99,  quantity: 80,  description: 'Straw lid with carry handle, sweat-proof exterior, BPA-free.' },
+  { name: 'HydroVault Flask 350ml',            category: 'Stainless Steel Bottles', sku: 'HV-SS-005', price: 34.99,  quantity: 75,  description: 'Compact hip-flask shape, perfect for hiking and travel.' },
+  { name: 'HydroVault Glass 600ml',            category: 'Glass Bottles',           sku: 'HV-GL-001', price: 32.99,  quantity: 55,  description: 'Borosilicate glass with silicone sleeve, pure taste, dishwasher safe.' },
+  { name: 'HydroVault Glass 900ml',            category: 'Glass Bottles',           sku: 'HV-GL-002', price: 39.99,  quantity: 40,  description: 'Large borosilicate glass bottle with bamboo lid and time markers.' },
+  { name: 'HydroVault Tritan 800ml',           category: 'Tritan Bottles',          sku: 'HV-TR-001', price: 27.99,  quantity: 150, description: 'Lightweight Tritan co-polyester, impact-resistant, crystal-clear body.' },
+  { name: 'HydroVault Tritan 500ml Kids',      category: 'Tritan Bottles',          sku: 'HV-TR-002', price: 19.99,  quantity: 200, description: 'Kid-friendly size with flip-top straw lid, drop-proof design.' },
+  { name: 'HydroVault Insulated Tumbler 450ml',category: 'Tumblers',                sku: 'HV-TU-001', price: 36.99,  quantity: 110, description: 'Desk tumbler with splash-proof slide lid, fits 12 oz pod machines.' },
+  { name: 'HydroVault Travel Tumbler 600ml',   category: 'Tumblers',                sku: 'HV-TU-002', price: 42.99,  quantity: 85,  description: 'Tapered base for car cup holders, 360° grip ring, cold 18 h / hot 8 h.' },
+  { name: 'Bamboo Lid (Standard)',             category: 'Lids & Caps',             sku: 'HV-LD-001', price: 8.99,   quantity: 300, description: 'Replacement bamboo lid compatible with all 600 ml+ glass bottles.' },
+  { name: 'Straw Lid Kit',                     category: 'Lids & Caps',             sku: 'HV-LD-002', price: 9.99,   quantity: 260, description: 'Replacement straw + lid compatible with Sport and Tritan range.' },
+  { name: 'Wide-Mouth Flip Lid',               category: 'Lids & Caps',             sku: 'HV-LD-003', price: 11.99,  quantity: 180, description: 'One-hand flip lid, leak-proof lock, fits all wide-mouth stainless bottles.' },
+  { name: 'Silicone Boot (M)',                 category: 'Accessories',             sku: 'HV-AC-001', price: 7.99,   quantity: 220, description: 'Protective silicone base, prevents dents and muffles set-down noise.' },
+  { name: 'Carry Strap & Carabiner',           category: 'Accessories',             sku: 'HV-AC-002', price: 12.99,  quantity: 175, description: 'Adjustable paracord carry strap with aluminium carabiner clip.' },
+  { name: 'Insulated Sleeve',                  category: 'Accessories',             sku: 'HV-AC-003', price: 14.99,  quantity: 140, description: 'Neoprene sleeve for extra insulation and grip, fits 500–750 ml bottles.' },
+  { name: 'Bottle Cleaning Brush Set',         category: 'Cleaning',                sku: 'HV-CL-001', price: 9.99,   quantity: 190, description: 'Long-handle bottle brush + straw brush + lid brush, BPA-free bristles.' },
+  { name: 'Eco Cleaning Tablets (30-pack)',    category: 'Cleaning',                sku: 'HV-CL-002', price: 11.99,  quantity: 160, description: 'Effervescent cleaning tabs, removes odours and stains, biodegradable.' },
+  { name: 'HydroVault Gift Box Set',           category: 'Gift Sets',               sku: 'HV-GF-001', price: 69.99,  quantity: 35,  description: 'Classic 750 ml bottle + bamboo lid + carry strap in premium gift box.' }
+];
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      category TEXT NOT NULL,
-      sku TEXT UNIQUE NOT NULL,
-      price REAL NOT NULL,
-      quantity INTEGER NOT NULL DEFAULT 0,
-      description TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  const count = db.prepare('SELECT COUNT(*) as cnt FROM products').get();
-  if (count.cnt === 0) {
-    const insert = db.prepare(`
-      INSERT INTO products (name, category, sku, price, quantity, description)
-      VALUES (@name, @category, @sku, @price, @quantity, @description)
-    `);
-
-    const products = [
-      { name: 'Wireless Bluetooth Headphones', category: 'Electronics', sku: 'ELEC-001', price: 79.99, quantity: 42, description: 'Over-ear noise cancelling headphones with 30hr battery' },
-      { name: 'USB-C Charging Cable (2m)', category: 'Electronics', sku: 'ELEC-002', price: 12.99, quantity: 150, description: 'Fast-charging USB-C cable, braided nylon' },
-      { name: 'Mechanical Keyboard', category: 'Electronics', sku: 'ELEC-003', price: 129.99, quantity: 18, description: 'Tenkeyless mechanical keyboard with blue switches' },
-      { name: 'Ergonomic Office Chair', category: 'Furniture', sku: 'FURN-001', price: 349.00, quantity: 7, description: 'Adjustable lumbar support, mesh back' },
-      { name: 'Standing Desk (Electric)', category: 'Furniture', sku: 'FURN-002', price: 499.00, quantity: 5, description: 'Height-adjustable electric standing desk 140x70cm' },
-      { name: 'Desk Lamp with USB Port', category: 'Furniture', sku: 'FURN-003', price: 34.99, quantity: 63, description: 'LED desk lamp with adjustable brightness and USB charging port' },
-      { name: 'Stainless Steel Water Bottle', category: 'Kitchen', sku: 'KTCH-001', price: 24.99, quantity: 88, description: 'Double-wall insulated, 750ml, BPA-free' },
-      { name: 'Coffee Grinder (Electric)', category: 'Kitchen', sku: 'KTCH-002', price: 44.99, quantity: 29, description: 'Burr grinder, 12 grind settings' },
-      { name: 'Non-stick Frying Pan Set', category: 'Kitchen', sku: 'KTCH-003', price: 59.99, quantity: 34, description: 'Set of 3: 20cm, 24cm, 28cm ceramic-coated pans' },
-      { name: 'Yoga Mat (6mm)', category: 'Sports', sku: 'SPRT-001', price: 29.99, quantity: 55, description: 'Non-slip eco-friendly TPE yoga mat with carry strap' },
-      { name: 'Resistance Bands Set', category: 'Sports', sku: 'SPRT-002', price: 19.99, quantity: 72, description: 'Set of 5 resistance bands, light to extra-heavy' },
-      { name: 'Running Shoes (Unisex)', category: 'Sports', sku: 'SPRT-003', price: 89.99, quantity: 40, description: 'Lightweight breathable mesh, sizes 36-46' },
-      { name: 'Hardcover Notebook A5', category: 'Stationery', sku: 'STAT-001', price: 9.99, quantity: 200, description: 'Dotted pages, 192 pages, lay-flat binding' },
-      { name: 'Ballpoint Pen Set (12pk)', category: 'Stationery', sku: 'STAT-002', price: 6.49, quantity: 310, description: 'Smooth writing black ballpoint pens, medium tip' },
-      { name: 'Sticky Notes (5-pack)', category: 'Stationery', sku: 'STAT-003', price: 4.99, quantity: 425, description: 'Assorted neon colors, 75x75mm' },
-      { name: 'Vitamin C 1000mg (60 tabs)', category: 'Health', sku: 'HLTH-001', price: 14.99, quantity: 95, description: 'High-strength vitamin C with rose hip extract' },
-      { name: 'Hand Sanitiser Gel 500ml', category: 'Health', sku: 'HLTH-002', price: 5.99, quantity: 180, description: '70% alcohol antibacterial gel with aloe vera' },
-      { name: 'Sunscreen SPF50 (200ml)', category: 'Health', sku: 'HLTH-003', price: 11.99, quantity: 67, description: 'Broad spectrum UVA/UVB, water resistant' },
-      { name: 'Bluetooth Smart Speaker', category: 'Electronics', sku: 'ELEC-004', price: 54.99, quantity: 25, description: '360° sound, IPX5 waterproof, 12hr playtime' },
-      { name: 'Laptop Stand (Adjustable)', category: 'Electronics', sku: 'ELEC-005', price: 39.99, quantity: 48, description: 'Aluminium alloy, foldable, fits laptops 10–17"' }
-    ];
-
-    const insertMany = db.transaction((items) => {
-      for (const item of items) insert.run(item);
+function loadDb() {
+  if (!fs.existsSync(DB_PATH)) {
+    const initial = { nextId: SEED_PRODUCTS.length + 1, products: [] };
+    SEED_PRODUCTS.forEach((p, i) => {
+      initial.products.push({ id: i + 1, ...p, created_at: new Date().toISOString() });
     });
-    insertMany(products);
+    fs.writeFileSync(DB_PATH, JSON.stringify(initial, null, 2));
     console.log('✅ Database seeded with 20 products');
   }
-
-  return db;
+  return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
 }
 
-module.exports = { initializeDatabase };
+function saveDb(data) {
+  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+}
+
+module.exports = { loadDb, saveDb };
+
